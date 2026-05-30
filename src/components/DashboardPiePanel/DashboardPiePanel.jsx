@@ -64,7 +64,7 @@ function DashboardPiePanel({ chartData }) {
   };
 
   return (
-    <section className="w-[320px] h-[220px] rounded-none bg-white p-6 shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden mt-10 ml-7">
+    <section className="mx-auto mt-6 flex h-[220px] w-full max-w-[320px] items-center justify-center overflow-hidden rounded-none border border-gray-100 bg-white p-4 shadow-sm sm:p-6 lg:mx-0 lg:ml-7 lg:mt-10">
       <div className="relative h-[140px] w-full flex items-center justify-center">
         {/* استخدمنا Pie هنا */}
         <Pie data={data} options={options} />

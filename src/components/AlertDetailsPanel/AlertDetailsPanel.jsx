@@ -1,16 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import UserIcon from "../../assets/icons/user-icon.svg";
 import phoneIcon from "../../assets/icons/phone-icon.svg";
-function AlertDetailsPanel({ title, details }) {
+import { apiStateToUiStatus } from "../../services/organizationApi";
+
+function AlertDetailsPanel({ title, details, isLoading, isUpdating, error, onStatusUpdate }) {
 	const [status, setStatus] = useState('pending');
+
+	useEffect(() => {
+		if (details?.status) {
+			setStatus(apiStateToUiStatus(details.status));
+		}
+	}, [details]);
+
+	async function handleUpdate() {
+		if (onStatusUpdate) {
+			await onStatusUpdate(status);
+		}
+	}
+
 	return (
 		<aside className="rounded-[var(--radius-sm)] bg-[#FBFCFB]">
 		<header 
   style={{ 
-    height: '102px',              // الطول من فيجما
-    backgroundColor: '#C5D5B9',   // اللون الأخضر من فيجما
-    borderTopLeftRadius: '10px',  // تدويرة الحواف فوق شمال
-    borderTopRightRadius: '10px', // تدويرة الحواف فوق يمين
+    height: '102px',
+    backgroundColor: '#C5D5B9',
+    borderTopLeftRadius: '10px',
+    borderTopRightRadius: '10px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -26,33 +41,36 @@ function AlertDetailsPanel({ title, details }) {
     <span className="text-[length:var(--font-size-md)] font-bold text-[#1f1f1f]">
       {details?.alertId}
     </span>
-    {/* الـ Badge بتاع الـ Status */}
     <span className="rounded px-2 py-1 text-[length:var(--font-size-xs)] font-semibold bg-[#E09A9A] text-[#5a1111]">
       {details?.status}
     </span>
   </div>
 </header>
 			<div className="space-y-4 pl-2 p-3 text-[#252525]">
+				{isLoading ? (
+					<p className="m-0 text-[length:var(--font-size-sm)] text-[#666]">Loading details...</p>
+				) : null}
+				{error ? (
+					<p className="m-0 text-[length:var(--font-size-sm)] text-[#8a1f1f]">{error}</p>
+				) : null}
 				<div className="space-y-5 text-[length:var(--font-size-sm)]">
 					<p className="m-0 flex mb-4 items-center gap-3"> 
     <img src={UserIcon} alt="User" className="w-[30px] h-[30px] object-contain" />
     <span>
-        User: {/* تقدري تكتبي الكلمة دي ثابتة أو تستخدمي details?.userLabel */}
+        User:
         <br />
-        {/* التعديل هنا: غيرنا userName لـ user */}
         <strong className="font-bold">{details?.user || "No Name"}</strong>
     </span>
 </p>
 
 <p className="m-0 flex items-center gap-3">
     <img src={phoneIcon} alt="Phone" className="w-[19.97px] h-[19.97px] object-contain" />
-    {/* تأكدي إن في الجدول البيانات فيها كلمة phone */}
     <span>{details?.phone || "No Phone"}</span>
 </p>
                   <div className="mt-4 space-y-3">
                  <div className="flex items-center gap-2">
                  <span className="text-[14px] font-bold text-[#1f1f1f]">ID:</span>
-                 <span className="text-[14px] font-medium text-[#2d2d2d]">{details.alertId}</span>
+                 <span className="text-[14px] font-medium text-[#2d2d2d]">{details?.alertId}</span>
                  </div>
 
                  <div className="flex items-center gap-2">
@@ -62,7 +80,7 @@ function AlertDetailsPanel({ title, details }) {
 
                 <div className="flex items-center gap-2">
                 <span className="text-[14px] font-bold text-[#1f1f1f]">Injury Type:</span>
-                <span className="text-[14px] font-medium text-[#2d2d2d]"></span>
+                <span className="text-[14px] font-medium text-[#2d2d2d]">{details?.injuryType || ''}</span>
                 </div>
                 </div>
 				</div>
@@ -76,9 +94,9 @@ function AlertDetailsPanel({ title, details }) {
 
 <div>
  <div className="flex flex-col gap-2">
-    {/* زر Pending */}
     <button 
       onClick={() => setStatus('pending')}
+      disabled={isUpdating}
       style={{ 
         width: '93px', 
         height: '29px',
@@ -89,9 +107,9 @@ function AlertDetailsPanel({ title, details }) {
       Pending
     </button>
     
-    {/* زر Resolved */}
     <button 
       onClick={() => setStatus('resolved')}
+      disabled={isUpdating}
       style={{ 
         width: '93px', 
         height: '31px',
@@ -102,19 +120,19 @@ function AlertDetailsPanel({ title, details }) {
       Resolved
     </button>
   </div>
-  {/* زر Update */}
   <div className="flex justify-center mt-6">
     <button 
-      onClick={() => console.log("Updated:", status)}
+      onClick={handleUpdate}
+      disabled={isUpdating}
       style={{ 
         width: '104px', 
         height: '29px', 
         backgroundColor: '#C5D5B9',
-        boxShadow: '0px 4px 4px 0px rgba(0, 0, 0, 0.25)' // الـ Drop shadow اللي في فيجما
+        boxShadow: '0px 4px 4px 0px rgba(0, 0, 0, 0.25)'
       }}
-      className="text-[12px] font-bold text-[#333] rounded-[5px] hover:brightness-95 transition-all"
+      className="text-[12px] font-bold text-[#333] rounded-[5px] hover:brightness-95 transition-all disabled:opacity-60"
     >
-      Update
+      {isUpdating ? 'Updating...' : 'Update'}
     </button>
   </div>
 </div>

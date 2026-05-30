@@ -5,7 +5,7 @@ function DashboardMapLegend({ items }) {
 	const toneClasses = ['text-[#df4f46]', 'text-[#33a05e]', 'text-[#ecb20d]'];
 
 	return (
-    <section className="w-[185px] h-[124px] rounded-[var(--radius-sm)] bg-[var(--color-surface)] p-2">
+    <section className="h-auto w-full rounded-[var(--radius-sm)] bg-[var(--color-surface)] p-2 lg:h-[124px] lg:w-[185px]">
         <div className="space-y-4">
             {/* 1. Affected areas */}
             <div className="flex items-center gap-3">

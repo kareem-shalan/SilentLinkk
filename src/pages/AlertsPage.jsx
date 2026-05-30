@@ -2,12 +2,21 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AlertsMapPanel from '../components/AlertsMapPanel';
 import DashboardSidebar from '../components/DashboardSidebar';
+import OrganizationLayout from '../components/OrganizationLayout';
 import useAlertsData from '../hooks/useAlertsData';
 import { ROUTES } from '../utils/constants';
 
 function AlertsPage() {
     const navigate = useNavigate();
-    const { alertsData } = useAlertsData();
+    const {
+        alertsData,
+        isLoading,
+        isSubmitting,
+        error,
+        actionError,
+        handleCreatePin,
+        handleDeletePin,
+    } = useAlertsData();
 
     function handleSidebarSelect(index) {
         if (index === 0) {
@@ -34,62 +43,46 @@ function AlertsPage() {
     }
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f4f4f4', fontFamily: 'Arial, sans-serif' }}>
-            {/* السايد بار بعرض ثابت مطابق لصفحة السيتينج */}
-            <div style={{ width: '300px', height: '100vh', position: 'fixed' }}>
+        <OrganizationLayout
+            sidebar={
                 <DashboardSidebar
                     menuItems={alertsData.menuItems}
-                    activeMenuIndex={2} // الـ Map Management هي النشطة هنا
+                    activeMenuIndex={2}
                     activeFooterItem=""
                     onSelectMenuItem={handleSidebarSelect}
                     onSelectFooterItem={handleFooterSelect}
                 />
-            </div>
+            }
+        >
+            <div className="flex min-h-[85vh] flex-col rounded-lg border border-[#777777] bg-white">
+                <div className="mt-2 border-b border-[#777777] px-4 py-3 sm:px-8 sm:py-4">
+                    <h1 className="m-0 text-lg font-bold text-black sm:text-2xl">
+                        Map management
+                    </h1>
+                </div>
 
-            {/* المحتوى مع نفس المسافة الإزاحة والبيدنج */}
-            <div style={{ flexGrow: 1, marginLeft: '320px', padding: '40px' }}>
-                {/* المربع الأبيض الكبير الداخلي بنفس الحدود والارتفاع */}
-                <div style={{ 
-                    backgroundColor: '#fff', 
-                    border: '1px solid #777777', 
-                    borderRadius: '8px', 
-                    minHeight: '85vh',
-                    display: 'flex',
-                    flexDirection: 'column' // عشان الخريطة تاخد باقي الارتفاع المتاح بالأسفل
-                }}>
-                    
-                    {/* Map management Title Container بنفس أبعاد عنوان السيتينج */}
-                    <div style={{ 
-                        padding: '15px 30px', 
-                        borderBottom: '1px solid #777777',
-                        marginTop: '10px'
-                    }}>
-                        <h1 style={{ fontSize: '24px', margin: 0, color: '#000', fontWeight: 'bold' }}>
-                            Map management
-                        </h1>
+                <div className="flex flex-1 flex-col p-4 sm:p-6 lg:p-8">
+                    {error ? (
+                        <div className="mb-3 text-sm font-bold text-[#8a1f1f]">{error}</div>
+                    ) : null}
+                    <div className="min-h-[350px] flex-1 overflow-hidden rounded border border-[#777777] sm:min-h-[450px]">
+                        {isLoading ? (
+                            <div className="py-12 text-center font-bold text-[#49987A] sm:py-16">
+                                Loading map pins...
+                            </div>
+                        ) : (
+                            <AlertsMapPanel
+                                pins={alertsData.mapPins}
+                                onCreatePin={handleCreatePin}
+                                onDeletePin={handleDeletePin}
+                                isSubmitting={isSubmitting}
+                                actionError={actionError}
+                            />
+                        )}
                     </div>
-
-                    {/* منطقة الخريطة (تمتد لتملأ باقي مساحة المربع الأبيض الداخلي) */}
-                    <div style={{ 
-                        flexGrow: 1, 
-                        padding: '30px', // مسافة داخلية مريحة حول الخريطة
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}>
-                        <div style={{ 
-                            flexGrow: 1, 
-                            borderRadius: '4px', 
-                            overflow: 'hidden', 
-                            border: '1px solid #777777',
-                            minHeight: '450px' // حد أدنى للارتفاع لضمان ظهور الخريطة بشكل ممتاز
-                        }}>
-                            <AlertsMapPanel pins={alertsData.mapPins} />
-                        </div>
-                    </div>
-
                 </div>
             </div>
-        </div>
+        </OrganizationLayout>
     );
 }
 

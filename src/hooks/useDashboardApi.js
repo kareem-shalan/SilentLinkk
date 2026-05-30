@@ -1,90 +1,106 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import {
+  toServerPeriod,
+  mapStatsFromApi,
+  mapHistoryFromApi,
+  classifyMapPins,
+  fetchOrganizationStats,
+  fetchSosHistory,
+  fetchMapPins,
+} from '../services/organizationApi';
 
-const api = axios.create({
-  baseURL: 'http://silentlink.runasp.net',
-  headers: { 'Content-Type': 'application/json' },
-});
+const DEFAULT_STATS = [
+  { title: 'Total SOS', value: '0', subtitle: 'On this daily' },
+  { title: 'Ended SOS', value: '0', subtitle: 'On this daily' },
+  { title: 'Running SOS', value: '0', subtitle: 'On this daily' },
+  { title: 'Pending SOS', value: '0', subtitle: 'On this daily' },
+];
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+function isUnauthorized(err) {
+  return err?.response?.status === 401;
+}
+
+function isAborted(err) {
+  return err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED';
+}
 
 export function useDashboardApi(activeFilter) {
-  const [stats, setStats] = useState([
-    { title: "Total SOS",   value: "0", subtitle: "On this daily" },
-    { title: "Ended SOS",   value: "0", subtitle: "On this daily" },
-    { title: "Running SOS", value: "0", subtitle: "On this daily" },
-    { title: "Pending SOS", value: "0", subtitle: "On this daily" },
-  ]);
+  const [stats, setStats] = useState(DEFAULT_STATS);
+  const [chartData, setChartData] = useState(null);
   const [mapPins, setMapPins] = useState({ Help: [], Safe: [], Affected: [] });
-  const [history, setHistory]   = useState([]);
+  const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
     async function fetchAll() {
       try {
         setIsLoading(true);
+        setError(null);
 
-        // تحويل الفلتر للقيمة اللي السيرفر بيفهمها
-        const periodMap = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' };
-        const serverPeriod = periodMap[activeFilter] ?? 'Daily';
+        const serverPeriod = toServerPeriod(activeFilter);
         const subtitle = `On this ${activeFilter}`;
 
-        const [statsRes, historyRes, pinsRes] = await Promise.all([
-          api.get(`/api/organization/stats?period=${serverPeriod}`).catch(() => ({ data: {} })),
-          api.get('/api/organization/sos-history').catch(() => ({ data: { historyRows: [] } })),
-          api.get('/api/organization/map/pins').catch(() => ({ data: [] })),
+        const [statsResult, historyResult, pinsResult] = await Promise.allSettled([
+          fetchOrganizationStats(serverPeriod, signal),
+          fetchSosHistory(signal),
+          fetchMapPins(signal),
         ]);
 
-        // ── Stats ──────────────────────────────────────────────
-        const s = statsRes?.data ?? {};
-        setStats([
-          { title: "Total SOS",   value: String(s.totalSOS   ?? s.totalSos   ?? 0), subtitle },
-          { title: "Ended SOS",   value: String(s.endedSOS   ?? s.endedSos   ?? 0), subtitle },
-          { title: "Running SOS", value: String(s.runningSOS ?? s.runningSos ?? 0), subtitle },
-          { title: "Pending SOS", value: String(s.pendingSOS ?? s.pendingSos ?? 0), subtitle },
-        ]);
+        let statsOk = false;
+        let historyOk = false;
+        let errorMessage = null;
 
-        // ── History ────────────────────────────────────────────
-        // السيرفر بيرجع { status, historyRows: [...] }
-        // كل row فيها: name, status, emergencyType (أو EmergencyType)
-        const rows = historyRes?.data?.historyRows
-                  ?? historyRes?.data?.HistoryRows
-                  ?? [];
+        if (statsResult.status === 'fulfilled') {
+          const { stats: mappedStats, chartData: mappedChartData } = mapStatsFromApi(statsResult.value, subtitle);
+          setStats(mappedStats);
+          setChartData(mappedChartData);
+          statsOk = true;
+        } else if (!isAborted(statsResult.reason)) {
+          console.error('Stats fetch error:', statsResult.reason);
+          if (isUnauthorized(statsResult.reason)) {
+            errorMessage = 'Unauthorized. Please sign in again.';
+          }
+        }
 
-        // نورمالايز الأسماء عشان SosHistoryPanel يقرأها صح
-        const normalizedRows = Array.isArray(rows)
-          ? rows.map(r => ({
-              name:          r.name          ?? r.Name          ?? '',
-              status:        r.status        ?? r.Status        ?? '',
-              emergencyType: r.emergencyType ?? r.EmergencyType ?? '',
-            }))
-          : [];
+        if (historyResult.status === 'fulfilled') {
+          setHistory(mapHistoryFromApi(historyResult.value));
+          historyOk = true;
+        } else if (!isAborted(historyResult.reason)) {
+          console.error('History fetch error:', historyResult.reason);
+          if (isUnauthorized(historyResult.reason)) {
+            errorMessage = 'Unauthorized. Please sign in again.';
+          }
+        }
 
-        setHistory(normalizedRows);
+        if (pinsResult.status === 'fulfilled') {
+          setMapPins(classifyMapPins(pinsResult.value));
+        } else if (!isAborted(pinsResult.reason)) {
+          console.warn('Map pins fetch error:', pinsResult.reason);
+          setMapPins({ Help: [], Safe: [], Affected: [] });
+        }
 
-        // ── Map Pins ───────────────────────────────────────────
-        const livePins = Array.isArray(pinsRes?.data) ? pinsRes.data : [];
-        const classified = { Help: [], Safe: [], Affected: [] };
-        livePins.forEach(pin => {
-          if (pin.tone === 'red'    || pin.type === 'Affected') classified.Affected.push(pin);
-          else if (pin.tone === 'green' || pin.type === 'Safe') classified.Safe.push(pin);
-          else classified.Help.push(pin);
-        });
-        setMapPins(classified);
+        if (!statsOk && !historyOk && !errorMessage) {
+          errorMessage = 'Failed to load dashboard data.';
+        }
 
+        setError(errorMessage);
       } catch (err) {
-        console.error('Dashboard fetch error:', err);
+        if (!isAborted(err)) {
+          console.error('Dashboard fetch error:', err);
+          setError(isUnauthorized(err) ? 'Unauthorized. Please sign in again.' : 'Failed to load dashboard data.');
+        }
       } finally {
-        setIsLoading(false);
+        if (!signal.aborted) setIsLoading(false);
       }
     }
 
     fetchAll();
+    return () => abortController.abort();
   }, [activeFilter]);
 
-  return { stats, history, mapPins, isLoading, error: null };
+  return { stats, chartData, history, mapPins, isLoading, error };
 }

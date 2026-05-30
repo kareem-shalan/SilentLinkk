@@ -10,20 +10,20 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// البيانات مطابقة تماماً لفيجما
-const data = [
+const DEFAULT_DATA = [
   { name: 'total sos', value: 50, goal: 52, trend: 0 },
   { name: 'ended sos', value: 30, goal: 52, trend: 20 },
   { name: 'running sos', value: 15, goal: 52, trend: 38 },
   { name: 'pennding sos', value: 8, goal: 52, trend: 48 },
 ];
 
-const DashboardChartPanel = () => {
+const DashboardChartPanel = ({ data }) => {
+  const chartData = data ?? DEFAULT_DATA;
   return (
-    <div className="bg-white p-5 rounded-xl shadow-sm w-full">
-      <div className="h-[300px] w-full">
+    <div className="min-w-0 w-full rounded-xl bg-white p-5 shadow-sm">
+      <div className="h-[300px] min-h-[300px] min-w-0 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+          <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
             {/* الشبكة المنقطة بالعرض فقط */}
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
             

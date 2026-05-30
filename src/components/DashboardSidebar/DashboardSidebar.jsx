@@ -73,7 +73,7 @@ function DashboardSidebar({
 		ORGANIZATION_CONFIGS[normalizedCountry];
 
 	return (
-		<aside className="flex h-full min-h-0 flex-col justify-between rounded-[var(--radius-sm)] border border-[#9f9f9f] bg-[#ececec] p-3 sm:p-4 xl:min-h-[875px]">
+		<aside className="flex h-auto min-h-0 flex-col justify-between rounded-[var(--radius-sm)] border border-[#9f9f9f] bg-[#ececec] p-3 sm:p-4 lg:h-full">
 			<div className="space-y-4">
 				<div className="rounded-[var(--radius-sm)] border border-[#adadad] bg-[var(--color-surface)] px-4 py-3 text-center">
 					<img

@@ -13,7 +13,7 @@ function SosManagementTable({ columns, historyRows, onRowClick, selectedId }) {
 >
   {columns.map((column) => (
     <span 
-      key={column} border-r
+      key={column}
       className={column === 'Emergency type' ? 'w-[126px]' : ''}
     >
       {column}
