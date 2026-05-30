@@ -1,0 +1,38 @@
+:root {
+	--color-page-bg: #020202;
+	--color-surface: #f5f6f5;
+	--color-brand: #4d9e7d;
+	--color-brand-strong: #3f866a;
+	--color-text-primary: #24493d;
+	--color-text-muted: #8e9892;
+	--color-text-dark: #303030;
+	--color-text-inverse: #ffffff;
+	--color-border-soft: #dce3df;
+	--color-frame: #1d8fd8;
+	--color-input-bg: #edf1ef;
+	--color-focus: #3b82f6;
+
+	--font-family-base: "Poppins", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	--font-size-xs: 0.75rem;
+	--font-size-sm: 0.875rem;
+	--font-size-md: 1rem;
+	--font-size-lg: 1.125rem;
+	--font-size-xl: 1.5rem;
+	--font-size-2xl: 2rem;
+	--font-size-3xl: 3rem;
+	--font-size-display: 3.25rem;
+
+	--space-4: 1rem;
+	--space-5: 1.25rem;
+	--space-6: 1.5rem;
+	--space-8: 2rem;
+	--space-10: 2.5rem;
+	--space-12: 3rem;
+
+	--radius-sm: 0.5rem;
+	--radius-md: 0.875rem;
+	--radius-lg: 1.25rem;
+	--radius-pill: 9999px;
+
+	--shadow-card: 0 18px 50px rgba(0, 0, 0, 0.3);
+}
