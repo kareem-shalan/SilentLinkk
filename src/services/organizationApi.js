@@ -1,11 +1,9 @@
 import axios from 'axios';
 
 function resolveApiBaseUrl() {
-  const envUrl = import.meta.env.VITE_API_BASE_URL;
-  if (!envUrl) return '';
-  // HTTP API URLs break on HTTPS (Vercel). Always use same-origin /api proxy in production.
-  if (import.meta.env.PROD && envUrl.startsWith('http://')) return '';
-  return envUrl;
+  // Production always uses same-origin /api (Vercel rewrite → backend).
+  if (import.meta.env.PROD) return '';
+  return import.meta.env.VITE_API_BASE_URL || '';
 }
 
 // Empty string = same-origin /api (Vite dev proxy locally, Vercel serverless function in production).

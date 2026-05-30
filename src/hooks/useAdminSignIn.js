@@ -45,13 +45,13 @@ function useAdminSignIn() {
     setSuccessMessage('');
 
     try {
+      const email = values.email.trim();
+      const password = values.password;
+
       const response = await fetch(apiUrl('/api/dashboard/signin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
+        body: JSON.stringify({ email, password, Email: email, Password: password }),
       });
 
       const responseText = await response.text();
@@ -64,7 +64,9 @@ function useAdminSignIn() {
       }
 
       if (!response.ok) {
-        setErrorMessage(data.message || 'Invalid email or password.');
+        setErrorMessage(
+          data.message || data.detail || data.title || 'Invalid email or password.',
+        );
         return false;
       }
 
