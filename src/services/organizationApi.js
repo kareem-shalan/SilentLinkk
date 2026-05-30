@@ -1,20 +1,29 @@
 import axios from 'axios';
 
-const DEFAULT_API_BASE_URL = 'http://silentlink.runasp.net';
-
 function resolveApiBaseUrl() {
   const fromEnv =
     import.meta.env.VITE_API_URL ||
     import.meta.env.VITE_API_BASE_URL;
 
-  const base = (fromEnv || DEFAULT_API_BASE_URL).replace(/\/$/, '');
+  const normalizedEnv = fromEnv?.replace(/\/$/, '');
 
-  // Relative values (e.g. "/api") resolve on the Vercel domain and return 405.
-  if (!base.startsWith('http://') && !base.startsWith('https://')) {
-    return DEFAULT_API_BASE_URL;
+  // HTTPS backend can be called directly from the HTTPS Vercel app.
+  if (normalizedEnv?.startsWith('https://')) {
+    return normalizedEnv;
   }
 
-  return base;
+  // Production on Vercel: use same-origin /api (rewritten server-side to the HTTP backend).
+  // Browsers block http:// calls from https:// pages (mixed content).
+  if (import.meta.env.PROD) {
+    return '';
+  }
+
+  // Local dev: optional direct HTTP backend, otherwise Vite /api proxy.
+  if (normalizedEnv?.startsWith('http://')) {
+    return normalizedEnv;
+  }
+
+  return '';
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
