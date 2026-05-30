@@ -1,28 +1,19 @@
 import axios from 'axios';
 
 function resolveApiBaseUrl() {
-  const fromEnv =
+  const fromEnv = (
     import.meta.env.VITE_API_URL ||
-    import.meta.env.VITE_API_BASE_URL;
+    import.meta.env.VITE_API_BASE_URL
+  )?.replace(/\/$/, '');
 
-  const normalizedEnv = fromEnv?.replace(/\/$/, '');
-
-  // HTTPS backend can be called directly from the HTTPS Vercel app.
-  if (normalizedEnv?.startsWith('https://')) {
-    return normalizedEnv;
+  // Only call HTTPS backends directly from the browser.
+  if (fromEnv?.startsWith('https://')) {
+    return fromEnv;
   }
 
-  // Production on Vercel: use same-origin /api (rewritten server-side to the HTTP backend).
-  // Browsers block http:// calls from https:// pages (mixed content).
-  if (import.meta.env.PROD) {
-    return '';
-  }
-
-  // Local dev: optional direct HTTP backend, otherwise Vite /api proxy.
-  if (normalizedEnv?.startsWith('http://')) {
-    return normalizedEnv;
-  }
-
+  // Same-origin /api everywhere else:
+  // - local: Vite dev proxy → http://silentlink.runasp.net
+  // - Vercel: serverless function → http://silentlink.runasp.net
   return '';
 }
 
