@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { apiUrl } from '../services/organizationApi';
 import { mapFieldsWithIcons } from '../utils/iconMap';
 import { SIGN_IN_FIELDS } from '../utils/formSchemas';
 
@@ -45,28 +44,20 @@ function useAdminSignIn() {
     setSuccessMessage('');
 
     try {
-      const email = values.email.trim();
-      const password = values.password;
-
-      const response = await fetch(apiUrl('/api/dashboard/signin'), {
+      // تعديل الرابط لـ http صريح
+      const response = await fetch('http://silentlink.runasp.net/api/dashboard/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, Email: email, Password: password }),
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
       });
 
-      const responseText = await response.text();
-      let data = {};
-      try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch {
-        setErrorMessage('Unexpected server response. Please try again.');
-        return false;
-      }
+      const data = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(
-          data.message || data.detail || data.title || 'Invalid email or password.',
-        );
+        setErrorMessage(data.message || 'Invalid email or password.');
         return false;
       }
 

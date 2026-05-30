@@ -1,18 +1,6 @@
 import axios from 'axios';
 
-function resolveApiBaseUrl() {
-  // Production always uses same-origin /api (Vercel rewrite → backend).
-  if (import.meta.env.PROD) return '';
-  return import.meta.env.VITE_API_BASE_URL || '';
-}
-
-// Empty string = same-origin /api (Vite dev proxy locally, Vercel serverless function in production).
-export const ORGANIZATION_BASE_URL = resolveApiBaseUrl();
-
-export function apiUrl(path) {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${ORGANIZATION_BASE_URL}${normalizedPath}`;
-}
+export const ORGANIZATION_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://silentlink.runasp.net';
 
 const api = axios.create({
   baseURL: ORGANIZATION_BASE_URL,

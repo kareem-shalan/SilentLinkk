@@ -3,7 +3,6 @@ import OrgIcon from '../assets/org-icon.svg';
 import UsersIcon from '../assets/users-icon.svg';
 import PendingIcon from '../assets/pending-icon.svg';
 import Sidebar from '../components/Sidebar';
-import { apiUrl } from '../services/organizationApi';
 
 const AdminDashboardPage = () => {
   const [organizations, setOrganizations] = useState([]);
@@ -17,10 +16,10 @@ const AdminDashboardPage = () => {
         const token = localStorage.getItem('token');
 
         const [orgsRes, usersRes] = await Promise.all([
-          fetch(apiUrl('/api/admin/organizations'), {
+          fetch('http://silentlink.runasp.net/api/admin/organizations', {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          fetch(apiUrl('/api/admin/users'), {
+          fetch('http://silentlink.runasp.net/api/admin/users', {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
