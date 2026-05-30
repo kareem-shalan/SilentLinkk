@@ -194,9 +194,44 @@ function AlertsMapPanel({ pins, onCreatePin, onDeletePin, isSubmitting, actionEr
               icon={icons[pin.tone] || icons.red}
             >
               <Popup>
-                <div style={{ minWidth: '120px' }}>
-                  <p style={{ margin: '0 0 6px', fontSize: '13px' }}>{pin.locationName || 'Alert Location'}</p>
-                  <p style={{ margin: '0 0 8px', fontSize: '11px', color: '#666' }}>{toneToType(pin.tone)}</p>
+                <div style={{ minWidth: '180px' }}>
+                  <p style={{ margin: '0 0 6px', fontSize: '13px', fontWeight: 'bold' }}>{pin.locationName || 'Alert Location'}</p>
+                  <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#666' }}>{toneToType(pin.tone)}</p>
+                  
+                  {pin.userName ? (
+                    <p style={{ margin: '0 0 4px', fontSize: '11px' }}>
+                      <strong>User:</strong> {pin.userName}
+                    </p>
+                  ) : null}
+                  
+                  {pin.emergencyType ? (
+                    <p style={{ margin: '0 0 4px', fontSize: '11px' }}>
+                      <strong>Type:</strong> {pin.emergencyType}
+                    </p>
+                  ) : null}
+                  
+                  {pin.status ? (
+                    <p style={{ margin: '0 0 4px', fontSize: '11px' }}>
+                      <strong>Status:</strong> {pin.status}
+                    </p>
+                  ) : null}
+                  
+                  <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#666' }}>
+                    <strong>Coords:</strong> {pin.lat?.toFixed(4)}, {pin.lng?.toFixed(4)}
+                  </p>
+                  
+                  {pin.phone ? (
+                    <p style={{ margin: '0 0 8px', fontSize: '11px' }}>
+                      <strong>Phone:</strong> {pin.phone}
+                    </p>
+                  ) : null}
+                  
+                  {pin.createdAt ? (
+                    <p style={{ margin: '0 0 8px', fontSize: '10px', color: '#999' }}>
+                      {pin.createdAt}
+                    </p>
+                  ) : null}
+                  
                   {pin.id ? (
                     <button
                       type="button"

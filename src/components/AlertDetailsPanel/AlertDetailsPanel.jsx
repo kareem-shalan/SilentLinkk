@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import UserIcon from "../../assets/icons/user-icon.svg";
 import phoneIcon from "../../assets/icons/phone-icon.svg";
 import { apiStateToUiStatus } from "../../services/organizationApi";
 
 function AlertDetailsPanel({ title, details, isLoading, isUpdating, error, onStatusUpdate }) {
 	const [status, setStatus] = useState('pending');
+	const [syncedAlertId, setSyncedAlertId] = useState(null);
 
-	useEffect(() => {
-		if (details?.status) {
-			setStatus(apiStateToUiStatus(details.status));
-		}
-	}, [details]);
+	if (details?.alertId && details.alertId !== syncedAlertId) {
+		setSyncedAlertId(details.alertId);
+		setStatus(details?.status ? apiStateToUiStatus(details.status) : 'pending');
+	}
 
 	async function handleUpdate() {
 		if (onStatusUpdate) {
@@ -86,7 +86,15 @@ function AlertDetailsPanel({ title, details, isLoading, isUpdating, error, onSta
 				</div>
 				<div>
 					<p className="m-0 mb-2 text-[length:var(--font-size-sm)] font-semibold">Location</p>
-					<div className="h-[140px] rounded-[var(--radius-sm)] bg-[linear-gradient(135deg,#eef2f6_0%,#d6dee8_100%)]" />
+					{details?.location ? (
+						<p className="m-0 text-[length:var(--font-size-sm)] text-[#252525]">{details.location}</p>
+					) : details?.latitude && details?.longitude ? (
+						<p className="m-0 text-[length:var(--font-size-sm)] text-[#252525]">
+							Lat: {details.latitude}, Lng: {details.longitude}
+						</p>
+					) : (
+						<p className="m-0 text-[length:var(--font-size-sm)] text-[#666]">No location data available</p>
+					)}
 				</div>
 				<div>
 					<p className="m-0 mb-2 text-[length:var(--font-size-sm)] font-semibold">Status</p>

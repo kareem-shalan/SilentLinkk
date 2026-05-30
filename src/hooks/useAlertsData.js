@@ -44,6 +44,20 @@ function useAlertsData() {
     return () => abortController.abort();
   }, [loadPins]);
 
+  // Listen for SOS status updates to refresh map pins
+  useEffect(() => {
+    const handleSosStatusUpdate = () => {
+      loadPins(new AbortController().signal).catch((err) => {
+        if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
+          console.error('Error refreshing map pins after SOS update:', err);
+        }
+      });
+    };
+
+    window.addEventListener('sos-status-updated', handleSosStatusUpdate);
+    return () => window.removeEventListener('sos-status-updated', handleSosStatusUpdate);
+  }, [loadPins]);
+
   const handleCreatePin = useCallback(async ({ latitude, longitude, type }) => {
     setIsSubmitting(true);
     setActionError(null);
@@ -55,6 +69,10 @@ function useAlertsData() {
         ...prev,
         mapPins: [...prev.mapPins, created],
       }));
+      
+      // Dispatch event to notify Dashboard and SOS pages to refresh
+      window.dispatchEvent(new CustomEvent('map-pin-created', { detail: { pin: created } }));
+      
       return { success: true };
     } catch (err) {
       console.error('Error creating map pin:', err);
@@ -72,15 +90,27 @@ function useAlertsData() {
     setActionError(null);
 
     try {
-      await deleteMapPin(id);
+      // Check if this is a locally cached pin (starts with 'local_')
+      // Local pins don't exist on the server, so we only remove them from local state
+      const isLocalPin = String(id).startsWith('local_');
+      
+      if (!isLocalPin) {
+        await deleteMapPin(id, new AbortController().signal);
+      }
+      
       setAlertsData((prev) => ({
         ...prev,
         mapPins: prev.mapPins.filter((pin) => String(pin.id) !== String(id)),
       }));
+      
+      // Dispatch event to notify Dashboard and SOS pages to refresh
+      window.dispatchEvent(new CustomEvent('map-pin-deleted', { detail: { pinId: id, isLocalPin } }));
+      
       return { success: true };
     } catch (err) {
       console.error('Error deleting map pin:', err);
-      setActionError(err.response?.status === 401 ? 'Unauthorized. Please sign in again.' : 'Failed to delete pin.');
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to delete pin.';
+      setActionError(err.response?.status === 401 ? 'Unauthorized. Please sign in again.' : errorMessage);
       return { success: false };
     } finally {
       setIsSubmitting(false);

@@ -2,12 +2,8 @@ import Button from '../Button';
 import LogoShield from '../../assets/logo-shield.svg';
 
 function PromoPanel({
-	className,
-	showLogo = false,
-	brandName,
 	title,
 	description,
-	actionLabel,
 	onAction,
 	align = 'left',
 }) {

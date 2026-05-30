@@ -58,6 +58,39 @@ function useSosManagementData() {
     return () => abortController.abort();
   }, [loadSosList]);
 
+  // Listen for map pin changes from Map Management
+  useEffect(() => {
+    const handleMapPinChange = () => {
+      const abortController = new AbortController();
+      const { signal } = abortController;
+
+      async function refreshData() {
+        try {
+          setIsLoading(true);
+          setError(null);
+          await loadSosList(signal);
+        } catch (err) {
+          if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED') return;
+          console.error('Error refreshing SOS list after map pin change:', err);
+          setError(err.response?.status === 401 ? 'Unauthorized. Please sign in again.' : 'Failed to load SOS alerts.');
+          setSosManagementData((prev) => ({ ...prev, alertRows: [], statusSummary: buildStatusSummary([]) }));
+        } finally {
+          if (!signal.aborted) setIsLoading(false);
+        }
+      }
+
+      refreshData();
+      return () => abortController.abort();
+    };
+
+    window.addEventListener('map-pin-created', handleMapPinChange);
+    window.addEventListener('map-pin-deleted', handleMapPinChange);
+    return () => {
+      window.removeEventListener('map-pin-created', handleMapPinChange);
+      window.removeEventListener('map-pin-deleted', handleMapPinChange);
+    };
+  }, [loadSosList]);
+
   const fetchDetail = useCallback(async (row) => {
     const sosId = row?.id ?? row?.alertId;
     if (!sosId) {
@@ -107,6 +140,9 @@ function useSosManagementData() {
       const refreshed = alertRows.find((r) => String(r.id ?? r.alertId) === String(sosId)) ?? updatedRow;
       setSelectedDetail(refreshed);
 
+      // Dispatch event to notify other components (Dashboard) to refresh
+      window.dispatchEvent(new CustomEvent('sos-status-updated', { detail: { sosId, state } }));
+
       return { success: true, detail: refreshed };
     } catch (err) {
       console.error('Error updating SOS status:', err);
@@ -127,7 +163,7 @@ function useSosManagementData() {
     detailError,
     updateError,
     fetchDetail,
-    handleStatusUpdate: updateSosStatus,
+    handleStatusUpdate,
   };
 }
 

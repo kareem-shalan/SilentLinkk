@@ -20,18 +20,18 @@ const {
 	detailError,
 	updateError,
 	fetchDetail,
-	updateSosStatus,
+	handleStatusUpdate,
 } = useSosManagementData();
 
 const [selectedAlert, setSelectedAlert] = useState(null);
+const alertRows = sosManagementData?.alertRows ?? [];
+const activeAlert = selectedAlert ?? (alertRows.length > 0 ? alertRows[0] : null);
 
 useEffect(() => {
-	if (sosManagementData?.alertRows && sosManagementData.alertRows.length > 0 && !selectedAlert) {
-		const firstRow = sosManagementData.alertRows[0];
-		setSelectedAlert(firstRow);
-		fetchDetail(firstRow);
+	if (activeAlert && !selectedAlert && alertRows.length > 0) {
+		fetchDetail(activeAlert);
 	}
-}, [sosManagementData, selectedAlert, fetchDetail]);
+}, [activeAlert, selectedAlert, alertRows.length, fetchDetail]);
 
 function handleSidebarSelect(index) {
 	if (index === 0) {
@@ -66,8 +66,8 @@ async function handleRowClick(row) {
 }
 
 async function onStatusUpdate(uiStatus) {
-	if (!selectedAlert) return;
-	const result = await updateSosStatus(selectedAlert, uiStatus);
+	if (!activeAlert) return;
+	const result = await handleStatusUpdate(activeAlert, uiStatus);
 	if (result.success) {
 		setSelectedAlert(result.detail);
 	}
@@ -113,13 +113,13 @@ return (
 								columns={SOS_MANAGEMENT_CONTENT.columns}
 								historyRows={sosManagementData?.alertRows}
 								onRowClick={handleRowClick}
-								selectedId={selectedAlert?.alertId}
+								selectedId={activeAlert?.alertId}
 							/>
 
-							{selectedAlert ? (
+							{activeAlert ? (
 								<AlertDetailsPanel
 									title="Alert Details"
-									details={selectedDetail ?? selectedAlert}
+									details={selectedDetail ?? activeAlert}
 									isLoading={isDetailLoading}
 									isUpdating={isUpdating}
 									error={detailError || updateError}

@@ -29,12 +29,12 @@ function SosHistoryPanel({ historyRows, title }) {
         {/* سطر العناوين */}
         <div className="grid grid-cols-3 border-b border-gray-300 bg-[#f9f9f9] font-bold h-[35px] items-center">
           <span className="px-3 border-r border-gray-300 text-[12px] h-full flex items-center">
-            Name
+            User Name
           </span>
-          <span className="px-3 border-r border-gray-300 text-[12px] h-full flex items-center pl-8">
+          <span className="px-3 border-r border-gray-300 text-[12px] h-full flex items-center">
             Status
           </span>
-          <span className="px-3 text-[12px] h-full flex items-center pl-8">
+          <span className="px-3 text-[12px] h-full flex items-center">
             Emergency Type
           </span>
         </div>
@@ -49,14 +49,14 @@ function SosHistoryPanel({ historyRows, title }) {
                   alt="icon" 
                   className="w-[26px] h-[26.39px] object-contain" 
                 />
-                <span className="text-[11px] font-medium">{row.name}</span>
+                <span className="text-[11px] font-medium">{row.user}</span>
               </span>
 
-              <span className="px-3 border-r border-gray-200 h-full flex items-center text-[11px] pl-8">
+              <span className="px-3 border-r border-gray-200 h-full flex items-center text-[11px]">
                 {row.status}
               </span>
 
-              <span className="px-3 flex items-center text-[11px] font-bold pl-8">
+              <span className="px-3 flex items-center text-[11px] font-bold">
                 {row.emergencyType}
               </span>
             </div>

@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import {
-  toServerPeriod,
-  mapStatsFromApi,
+  calculateStatsFromSosData,
   mapHistoryFromApi,
   classifyMapPins,
-  fetchOrganizationStats,
   fetchSosHistory,
   fetchMapPins,
+  fetchSosList,
+  normalizeSosList,
 } from '../services/organizationApi';
 
 const DEFAULT_STATS = [
   { title: 'Total SOS', value: '0', subtitle: 'On this daily' },
-  { title: 'Ended SOS', value: '0', subtitle: 'On this daily' },
-  { title: 'Running SOS', value: '0', subtitle: 'On this daily' },
-  { title: 'Pending SOS', value: '0', subtitle: 'On this daily' },
+  { title: 'Pending', value: '0', subtitle: 'On this daily' },
+  { title: 'Running', value: '0', subtitle: 'On this daily' },
+  { title: 'Ended', value: '0', subtitle: 'On this daily' },
 ];
 
 function isUnauthorized(err) {
@@ -41,11 +41,10 @@ export function useDashboardApi(activeFilter) {
         setIsLoading(true);
         setError(null);
 
-        const serverPeriod = toServerPeriod(activeFilter);
         const subtitle = `On this ${activeFilter}`;
 
-        const [statsResult, historyResult, pinsResult] = await Promise.allSettled([
-          fetchOrganizationStats(serverPeriod, signal),
+        const [sosListResult, historyResult, pinsResult] = await Promise.allSettled([
+          fetchSosList(signal),
           fetchSosHistory(signal),
           fetchMapPins(signal),
         ]);
@@ -54,14 +53,15 @@ export function useDashboardApi(activeFilter) {
         let historyOk = false;
         let errorMessage = null;
 
-        if (statsResult.status === 'fulfilled') {
-          const { stats: mappedStats, chartData: mappedChartData } = mapStatsFromApi(statsResult.value, subtitle);
+        if (sosListResult.status === 'fulfilled') {
+          const sosList = normalizeSosList(sosListResult.value);
+          const { stats: mappedStats, chartData: mappedChartData } = calculateStatsFromSosData(sosList, subtitle);
           setStats(mappedStats);
           setChartData(mappedChartData);
           statsOk = true;
-        } else if (!isAborted(statsResult.reason)) {
-          console.error('Stats fetch error:', statsResult.reason);
-          if (isUnauthorized(statsResult.reason)) {
+        } else if (!isAborted(sosListResult.reason)) {
+          console.error('SOS list fetch error:', sosListResult.reason);
+          if (isUnauthorized(sosListResult.reason)) {
             errorMessage = 'Unauthorized. Please sign in again.';
           }
         }
@@ -100,6 +100,96 @@ export function useDashboardApi(activeFilter) {
 
     fetchAll();
     return () => abortController.abort();
+  }, [activeFilter]);
+
+  // Listen for SOS status updates from other pages
+  useEffect(() => {
+    const handleSosStatusUpdate = () => {
+      const abortController = new AbortController();
+      const { signal } = abortController;
+
+      async function refreshData() {
+        try {
+          setIsLoading(true);
+          setError(null);
+
+          const subtitle = `On this ${activeFilter}`;
+
+          const [sosListResult, historyResult] = await Promise.allSettled([
+            fetchSosList(signal),
+            fetchSosHistory(signal),
+          ]);
+
+          if (sosListResult.status === 'fulfilled') {
+            const sosList = normalizeSosList(sosListResult.value);
+            const { stats: mappedStats, chartData: mappedChartData } = calculateStatsFromSosData(sosList, subtitle);
+            setStats(mappedStats);
+            setChartData(mappedChartData);
+          }
+
+          if (historyResult.status === 'fulfilled') {
+            setHistory(mapHistoryFromApi(historyResult.value));
+          }
+        } catch (err) {
+          console.error('Dashboard refresh error:', err);
+        } finally {
+          if (!signal.aborted) setIsLoading(false);
+        }
+      }
+
+      refreshData();
+      return () => abortController.abort();
+    };
+
+    window.addEventListener('sos-status-updated', handleSosStatusUpdate);
+    return () => window.removeEventListener('sos-status-updated', handleSosStatusUpdate);
+  }, [activeFilter]);
+
+  // Listen for map pin changes from Map Management
+  useEffect(() => {
+    const handleMapPinChange = () => {
+      const abortController = new AbortController();
+      const { signal } = abortController;
+
+      async function refreshData() {
+        try {
+          setIsLoading(true);
+          setError(null);
+
+          const subtitle = `On this ${activeFilter}`;
+
+          const [sosListResult, historyResult] = await Promise.allSettled([
+            fetchSosList(signal),
+            fetchSosHistory(signal),
+          ]);
+
+          if (sosListResult.status === 'fulfilled') {
+            const sosList = normalizeSosList(sosListResult.value);
+            const { stats: mappedStats, chartData: mappedChartData } = calculateStatsFromSosData(sosList, subtitle);
+            setStats(mappedStats);
+            setChartData(mappedChartData);
+          }
+
+          if (historyResult.status === 'fulfilled') {
+            setHistory(mapHistoryFromApi(historyResult.value));
+          }
+        } catch (err) {
+          console.error('Dashboard refresh error:', err);
+        } finally {
+          if (!signal.aborted) setIsLoading(false);
+        }
+      }
+
+      refreshData();
+      return () => abortController.abort();
+    };
+
+    window.addEventListener('map-pin-created', handleMapPinChange);
+    window.addEventListener('map-pin-deleted', handleMapPinChange);
+    return () => {
+      window.removeEventListener('map-pin-created', handleMapPinChange);
+      window.removeEventListener('map-pin-deleted', handleMapPinChange);
+    };
   }, [activeFilter]);
 
   return { stats, chartData, history, mapPins, isLoading, error };

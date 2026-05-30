@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const ORGANIZATION_BASE_URL = 'http://silentlink.runasp.net';
+export const ORGANIZATION_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://silentlink.runasp.net';
 
 const api = axios.create({
   baseURL: ORGANIZATION_BASE_URL,
@@ -57,8 +57,12 @@ export function mapPinFromApi(pin) {
     lng: pick(pin, 'longitude', 'Longitude', 'lng', 'Lng'),
     type,
     tone,
-    userName: pick(pin, 'userName', 'UserName') ?? '',
-    locationName: pick(pin, 'userName', 'UserName', 'locationName', 'LocationName') ?? 'Alert Location',
+    userName: pick(pin, 'userName', 'UserName', 'user', 'User', 'name', 'Name', 'fullName', 'FullName') ?? '',
+    locationName: pick(pin, 'userName', 'UserName', 'user', 'User', 'locationName', 'LocationName', 'name', 'Name') ?? 'Alert Location',
+    emergencyType: pick(pin, 'emergencyType', 'EmergencyType', 'type', 'Type') ?? '',
+    status: pick(pin, 'status', 'Status') ?? '',
+    phone: pick(pin, 'phone', 'Phone', 'phoneNumber', 'PhoneNumber') ?? '',
+    createdAt: pick(pin, 'createdAt', 'CreatedAt', 'time', 'Time', 'timestamp', 'Timestamp') ?? '',
   };
 }
 
@@ -82,9 +86,9 @@ export function mapStatsFromApi(data, subtitle) {
 
   const stats = [
     { title: 'Total SOS', value: String(total), subtitle },
-    { title: 'Ended SOS', value: String(ended), subtitle },
-    { title: 'Running SOS', value: String(running), subtitle },
-    { title: 'Pending SOS', value: String(pending), subtitle },
+    { title: 'Pending', value: String(pending), subtitle },
+    { title: 'Running', value: String(running), subtitle },
+    { title: 'Ended', value: String(ended), subtitle },
   ];
 
   const totalNum = Number(total) || 0;
@@ -100,13 +104,62 @@ export function mapStatsFromApi(data, subtitle) {
   return { stats, chartData };
 }
 
+export function calculateStatsFromSosData(sosList, subtitle) {
+  if (!Array.isArray(sosList)) {
+    return {
+      stats: [
+        { title: 'Total SOS', value: '0', subtitle },
+        { title: 'Pending', value: '0', subtitle },
+        { title: 'Running', value: '0', subtitle },
+        { title: 'Ended', value: '0', subtitle },
+      ],
+      chartData: [
+        { name: 'total sos', value: 0, goal: 52, trend: 0 },
+        { name: 'ended sos', value: 0, goal: 52, trend: 0 },
+        { name: 'running sos', value: 0, goal: 52, trend: 0 },
+        { name: 'pennding sos', value: 0, goal: 52, trend: 0 },
+      ],
+    };
+  }
+
+  const total = sosList.length;
+  const pending = sosList.filter((item) => {
+    const status = pick(item, 'status', 'Status', 'state', 'State') ?? '';
+    return !isResolvedStatus(status);
+  }).length;
+  const ended = sosList.filter((item) => {
+    const status = pick(item, 'status', 'Status', 'state', 'State') ?? '';
+    return isResolvedStatus(status);
+  }).length;
+  const running = pending;
+
+  const stats = [
+    { title: 'Total SOS', value: String(total), subtitle },
+    { title: 'Pending', value: String(pending), subtitle },
+    { title: 'Running', value: String(running), subtitle },
+    { title: 'Ended', value: String(ended), subtitle },
+  ];
+
+  const goal = total > 0 ? total : 52;
+
+  const chartData = [
+    { name: 'total sos', value: total, goal, trend: 0 },
+    { name: 'ended sos', value: ended, goal, trend: Math.round(ended * 0.4) },
+    { name: 'running sos', value: running, goal, trend: Math.round(running * 0.7) },
+    { name: 'pennding sos', value: pending, goal, trend: Math.round(pending * 0.9) },
+  ];
+
+  return { stats, chartData };
+}
+
 export function mapHistoryFromApi(data) {
   const rows = data?.historyRows ?? data?.HistoryRows ?? data ?? [];
   if (!Array.isArray(rows)) return [];
   return rows.map((r) => ({
-    name: pick(r, 'name', 'Name') ?? '',
+    alertId: pick(r, 'alertId', 'AlertId') ?? '',
+    user: pick(r, 'user', 'User', 'userName', 'UserName', 'name', 'Name', 'fullName', 'FullName') ?? '',
     status: pick(r, 'status', 'Status') ?? '',
-    emergencyType: pick(r, 'emergencyType', 'EmergencyType') ?? '',
+    emergencyType: pick(r, 'emergencyType', 'EmergencyType', 'type', 'Type') ?? '',
   }));
 }
 
@@ -121,16 +174,19 @@ export function mapSosRowFromApi(item) {
   const status = pick(item, 'status', 'Status', 'state', 'State') ?? 'Pending';
   const resolved = isResolvedStatus(status);
 
+  // Try multiple possible field names for user data
+  const user = pick(item, 'user', 'User', 'userName', 'UserName', 'name', 'Name', 'fullName', 'FullName') ?? '';
+  
   return {
     id,
     alertId,
-    user: pick(item, 'user', 'User', 'userName', 'UserName') ?? '',
-    emergencyType: pick(item, 'emergencyType', 'EmergencyType') ?? '',
-    location: pick(item, 'location', 'Location') ?? '',
-    time: pick(item, 'time', 'Time', 'createdAt', 'CreatedAt') ?? '',
+    user,
+    emergencyType: pick(item, 'emergencyType', 'EmergencyType', 'type', 'Type') ?? '',
+    location: pick(item, 'location', 'Location', 'address', 'Address') ?? '',
+    time: pick(item, 'time', 'Time', 'createdAt', 'CreatedAt', 'timestamp', 'Timestamp') ?? '',
     status: toDisplayStatus(status),
     statusClass: resolved ? 'bg-[#4AAA6B] text-[#0f4c26]' : 'bg-[#d59b9b] text-[#5a1111]',
-    phone: pick(item, 'phone', 'Phone') ?? '',
+    phone: pick(item, 'phone', 'Phone', 'phoneNumber', 'PhoneNumber') ?? '',
   };
 }
 
@@ -138,9 +194,10 @@ export function mapSosDetailFromApi(data) {
   const row = mapSosRowFromApi(data);
   return {
     ...row,
-    injuryType: pick(data, 'injuryType', 'InjuryType') ?? '',
-    latitude: pick(data, 'latitude', 'Latitude'),
-    longitude: pick(data, 'longitude', 'Longitude'),
+    injuryType: pick(data, 'injuryType', 'InjuryType', 'type', 'Type') ?? '',
+    latitude: pick(data, 'latitude', 'Latitude', 'lat', 'Lat'),
+    longitude: pick(data, 'longitude', 'Longitude', 'lng', 'Lng'),
+    phone: pick(data, 'phone', 'Phone', 'phoneNumber', 'PhoneNumber') ?? row.phone,
   };
 }
 

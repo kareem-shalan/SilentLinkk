@@ -1,9 +1,7 @@
 import RedPin from '../../assets/red-pin.png';
 import GreenPin from '../../assets/green-pin.png';
 import YellowPin from '../../assets/yellow-pin.png';
-function DashboardMapLegend({ items }) {
-	const toneClasses = ['text-[#df4f46]', 'text-[#33a05e]', 'text-[#ecb20d]'];
-
+function DashboardMapLegend() {
 	return (
     <section className="h-auto w-full rounded-[var(--radius-sm)] bg-[var(--color-surface)] p-2 lg:h-[124px] lg:w-[185px]">
         <div className="space-y-4">

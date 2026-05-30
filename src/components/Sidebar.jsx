@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
 // استيراد الأيقونات الأساسية اللي إنتي مستخدماها بالفعل
@@ -9,30 +9,29 @@ import LogoutIcon from '../assets/logout-icon.svg';
 import SettingsIcon from '../assets/setting-icon.svg'; 
 import NameIcon from '../assets/name-icon.svg'; // الأيقونة الافتراضية للبروفايل
 
+function getInitialSidebarState() {
+  const currentRole = localStorage.getItem('role') || 'admin';
+  const savedName = localStorage.getItem('orgName');
+  const savedLogo = localStorage.getItem('orgLogo');
+
+  if (currentRole === 'organization') {
+    return {
+      role: currentRole,
+      profileName: savedName || 'Malak Khaled',
+      logo: savedLogo || NameIcon,
+    };
+  }
+
+  return {
+    role: currentRole,
+    profileName: 'Malak Khaled',
+    logo: NameIcon,
+  };
+}
+
 const Sidebar = () => {
   const navigate = useNavigate();
-  
-  // حالات ديناميكية لقراءة بيانات المستخدم أو المنظمة الحالية
-  const [role, setRole] = useState('admin'); 
-  const [profileName, setProfileName] = useState('Malak Khaled');
-  const [logo, setLogo] = useState(NameIcon);
-
-  useEffect(() => {
-    // الكود بيقرأ البيانات اللي تسجلت في الـ localStorage أول ما دخلنا
-    const currentRole = localStorage.getItem('role') || 'admin'; // يقبل 'admin' أو 'organization'
-    const savedName = localStorage.getItem('orgName'); // اسم المنظمة المسجلة لايف
-    const savedLogo = localStorage.getItem('orgLogo'); // رابط اللوجو القادم من الـ API
-
-    setRole(currentRole);
-    
-    if (currentRole === 'organization') {
-      if (savedName) setProfileName(savedName);
-      if (savedLogo) setLogo(savedLogo); // بيحط رابط الصورة مباشرة هنا
-    } else {
-      setProfileName('Malak Khaled');
-      setLogo(NameIcon);
-    }
-  }, []);
+  const [{ role, profileName, logo }] = useState(getInitialSidebarState);
 
   const handleLogout = () => {
     // بننظف الـ localStorage عند الخروج عشان ما يحصلش تضارب في التوكنز

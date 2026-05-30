@@ -75,7 +75,7 @@ function useAdminSignIn() {
       setSuccessMessage(SUCCESS_MESSAGE);
       return true;
 
-    } catch (error) {
+    } catch {
       setErrorMessage('Unable to sign in. Please check your connection.');
       return false;
     } finally {
