@@ -1,32 +1,21 @@
 import axios from 'axios';
 
-function resolveApiBaseUrl() {
-  const fromEnv = (
-    import.meta.env.VITE_API_URL ||
-    import.meta.env.VITE_API_BASE_URL
-  )?.replace(/\/$/, '');
+const BASE_URL = (
+  import.meta.env.VITE_API_URL?.startsWith('http')
+    ? import.meta.env.VITE_API_URL
+    : 'http://silentlink.runasp.net'
+).replace(/\/$/, '');
 
-  // Only call HTTPS backends directly from the browser.
-  if (fromEnv?.startsWith('https://')) {
-    return fromEnv;
-  }
-
-  // Same-origin /api everywhere else:
-  // - local: Vite dev proxy → http://silentlink.runasp.net
-  // - Vercel: serverless function → http://silentlink.runasp.net
-  return '';
-}
-
-export const API_BASE_URL = resolveApiBaseUrl();
-export const ORGANIZATION_BASE_URL = API_BASE_URL;
+export const API_BASE_URL = BASE_URL;
+export const ORGANIZATION_BASE_URL = BASE_URL;
 
 export function apiUrl(path) {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${API_BASE_URL}${normalizedPath}`;
+  if (!path.startsWith('/')) path = `/${path}`;
+  return BASE_URL + path;
 }
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
