@@ -4,16 +4,16 @@ import NameIcon from '../../assets/name-icon.svg';
 
 function SosHistoryPanel({ historyRows, title }) {
   return (
-    <section className="w-full rounded-[var(--radius-sm)] bg-[#1a8e5f] p-3 sm:p-4 text-white">
-      <header className="mb-2 flex flex-wrap items-center justify-between gap-2 px-2 sm:px-6 pt-2 sm:pt-4">
+    <section className="w-full  rounded-[var(--radius-sm)] bg-[#1a8e5f] p-3 sm:p-4 text-white">
+      <header className="mb-2  flex flex-wrap items-center justify-between gap-2 px-2 sm:px-6 pt-2 sm:pt-4">
         <h3 className="m-0 text-xl font-semibold">{title}</h3>
-        <div className="bg-white text-black px-4 py-1 rounded-sm text-sm cursor-pointer shadow-sm">
+        <div className="bg-white top-10 relative text-black px-4 py-1 rounded-sm text-sm cursor-pointer shadow-sm">
           {title}
         </div>
       </header>
 
       <div className="mb-2 flex px-2 sm:px-6">
-        <div className="flex mt-1 mb-6 items-center bg-white rounded-sm px-3 py-1 w-[130px] shadow-sm border border-gray-100">
+        <div className="flex mt-1 mb-6  items-center bg-white rounded-sm px-3 py-1 w-[130px] shadow-sm border border-gray-100">
           <input 
             type="text" 
             placeholder="Search" 
@@ -24,7 +24,7 @@ function SosHistoryPanel({ historyRows, title }) {
       </div>
 
       {/* الجدول: شيلنا h-[204px] وخليناه h-fit عشان يبين كل الأسامي */}
-      <div className="mx-2 sm:mx-6 h-fit w-full max-w-full overflow-x-auto rounded-md border border-gray-300 bg-white text-black shadow-sm">
+      <div className="mx-2 relative right-6 sm:mx-6 h-fit w-full max-w-full overflow-x-auto rounded-md border border-gray-300 bg-white text-black shadow-sm">
         
         {/* سطر العناوين */}
         <div className="grid grid-cols-3 border-b border-gray-300 bg-[#f9f9f9] font-bold h-[35px] items-center">

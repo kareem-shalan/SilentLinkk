@@ -41,7 +41,9 @@ function AlertDetailsPanel({ title, details, isLoading, isUpdating, error, onSta
     <span className="text-[length:var(--font-size-md)] font-bold text-[#1f1f1f]">
       {details?.alertId}
     </span>
-    <span className="rounded px-2 py-1 text-[length:var(--font-size-xs)] font-semibold bg-[#E09A9A] text-[#5a1111]">
+    <span className={
+      `inline-flex items-center justify-center rounded-[4px] font-bold text-[12px] shadow-sm ${status === 'resolved' ? 'bg-[#9bd0a3] text-[#0f4c26] p-2 rounded-2xl ' : '  p-2 rounded-2xl bg-[#d59b9b] text-[#5a1111]'}`
+    }>
       {details?.status}
     </span>
   </div>
@@ -63,10 +65,7 @@ function AlertDetailsPanel({ title, details, isLoading, isUpdating, error, onSta
     </span>
 </p>
 
-<p className="m-0 flex items-center gap-3">
-    <img src={phoneIcon} alt="Phone" className="w-[19.97px] h-[19.97px] object-contain" />
-    <span>{details?.phone || "No Phone"}</span>
-</p>
+
                   <div className="mt-4 space-y-3">
                  <div className="flex items-center gap-2">
                  <span className="text-[14px] font-bold text-[#1f1f1f]">ID:</span>
@@ -79,7 +78,6 @@ function AlertDetailsPanel({ title, details, isLoading, isUpdating, error, onSta
                  </div>
 
                 <div className="flex items-center gap-2">
-                <span className="text-[14px] font-bold text-[#1f1f1f]">Injury Type:</span>
                 <span className="text-[14px] font-medium text-[#2d2d2d]">{details?.injuryType || ''}</span>
                 </div>
                 </div>
