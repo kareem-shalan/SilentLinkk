@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import SearchIcon from '../assets/search-icon.svg';
 import Sidebar from '../components/Sidebar';
+import { apiUrl } from '../services/organizationApi';
 
 const UsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -15,7 +16,7 @@ const UsersPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://silentlink.runasp.net/api/admin/users', {
+      const response = await fetch(apiUrl('/api/admin/users'), {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
@@ -45,7 +46,7 @@ const UsersPage = () => {
     };
 
     try {
-      const response = await fetch('http://silentlink.runasp.net/api/admin/users/action', {
+      const response = await fetch(apiUrl('/api/admin/users/action'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
