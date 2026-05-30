@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { apiUrl } from '../services/organizationApi';
 import { mapFieldsWithIcons } from '../utils/iconMap';
 import { SIGN_IN_FIELDS } from '../utils/formSchemas';
 
@@ -44,8 +45,7 @@ function useAdminSignIn() {
     setSuccessMessage('');
 
     try {
-      // تعديل الرابط لـ http صريح
-      const response = await fetch('http://silentlink.runasp.net/api/dashboard/signin', {
+      const response = await fetch(apiUrl('/api/dashboard/signin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
