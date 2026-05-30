@@ -6,12 +6,15 @@ function resolveBaseUrl() {
   const envUrl = import.meta.env.VITE_API_URL?.trim();
 
   if (import.meta.env.PROD) {
-    if (envUrl?.startsWith('http://') || envUrl?.startsWith('https://')) {
+    // HTTPS backend can be called directly from the HTTPS Vercel app.
+    if (envUrl?.startsWith('https://')) {
       return envUrl.replace(/\/$/, '');
     }
-    return DEFAULT_BASE_URL;
+    // HTTP backend: use same-origin /api (Vercel rewrite). Direct http:// is blocked (mixed content).
+    return '';
   }
 
+  // Local dev: direct HTTP backend (localhost → http:// is allowed).
   return DEFAULT_BASE_URL;
 }
 
