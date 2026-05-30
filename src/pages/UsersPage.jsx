@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import SearchIcon from '../assets/search-icon.svg';
 import Sidebar from '../components/Sidebar';
-import { apiUrl } from '../services/organizationApi';
+import { fetchAdminUsers, postAdminUserAction } from '../services/organizationApi';
 
 const UsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -16,9 +16,7 @@ const UsersPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(apiUrl('/api/admin/users'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await fetchAdminUsers(token);
       const data = await response.json();
       setUsers(data.users || []);
     } catch (error) {
@@ -46,14 +44,7 @@ const UsersPage = () => {
     };
 
     try {
-      const response = await fetch(apiUrl('/api/admin/users/action'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
+      const response = await postAdminUserAction(token, payload);
 
       if (response.ok || response.status === 200 || response.status === 204) {
         if (actionType === 'delete') {

@@ -1,11 +1,21 @@
 import axios from 'axios';
 
-const BASE_URL = (
-  import.meta.env.VITE_API_URL?.startsWith('http')
-    ? import.meta.env.VITE_API_URL
-    : 'http://silentlink.runasp.net'
-).replace(/\/$/, '');
+const DEFAULT_BASE_URL = 'http://silentlink.runasp.net';
 
+function resolveBaseUrl() {
+  const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (import.meta.env.PROD) {
+    if (envUrl?.startsWith('http://') || envUrl?.startsWith('https://')) {
+      return envUrl.replace(/\/$/, '');
+    }
+    return DEFAULT_BASE_URL;
+  }
+
+  return DEFAULT_BASE_URL;
+}
+
+export const BASE_URL = resolveBaseUrl();
 export const API_BASE_URL = BASE_URL;
 export const ORGANIZATION_BASE_URL = BASE_URL;
 
@@ -15,11 +25,14 @@ export function apiUrl(path) {
 }
 
 const api = axios.create({
-  baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
 api.interceptors.request.use((config) => {
+  if (config.url && !config.url.startsWith('http')) {
+    config.url = apiUrl(config.url);
+  }
+
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
@@ -283,6 +296,48 @@ function uncacheMapPin(id) {
 
 function isPinFetchFallbackStatus(status) {
   return status === 401 || status === 403 || status === 405;
+}
+
+export async function signInDashboard(credentials) {
+  return fetch(apiUrl('/api/dashboard/signin'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+}
+
+export async function fetchAdminOrganizations(token) {
+  return fetch(apiUrl('/api/admin/organizations'), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function fetchAdminUsers(token) {
+  return fetch(apiUrl('/api/admin/users'), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function postAdminUserAction(token, payload) {
+  return fetch(apiUrl('/api/admin/users/action'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function postAdminOrganizationAction(token, payload) {
+  return fetch(apiUrl('/api/admin/organizations/action'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function fetchOrganizationStats(period, signal) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import SearchIcon from '../assets/search-icon.svg';
 import Sidebar from '../components/Sidebar';
-import { apiUrl } from '../services/organizationApi';
+import { fetchAdminOrganizations, postAdminOrganizationAction } from '../services/organizationApi';
 
 const OrganizationsPage = () => {
   const [organizations, setOrganizations] = useState([]);
@@ -16,9 +16,7 @@ const OrganizationsPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch(apiUrl('/api/admin/organizations'), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await fetchAdminOrganizations(token);
       const data = await response.json();
       setOrganizations(data.organizations || []);
     } catch (error) {
@@ -46,14 +44,7 @@ const OrganizationsPage = () => {
     };
 
     try {
-      const response = await fetch(apiUrl('/api/admin/organizations/action'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
+      const response = await postAdminOrganizationAction(token, payload);
 
       if (response.ok || response.status === 200 || response.status === 204) {
         // إذا كان الأكشن حذف، بنشيله من الـ State فوراً
