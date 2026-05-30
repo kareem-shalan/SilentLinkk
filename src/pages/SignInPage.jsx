@@ -4,6 +4,7 @@ import AuthCard from '../components/AuthCard';
 import Button from '../components/Button';
 import ContactModal from '../components/ContactModal';
 import FormField from '../components/FormField';
+import signinLogo from '../assets/signin-logo.png';
 import useAdminSignIn from '../hooks/useAdminSignIn';
 import { ROUTES } from '../utils/constants';
 
@@ -198,7 +199,7 @@ function SignInPage() {
         <section className="relative w-1/2 bg-[#49987A] flex flex-col items-center justify-center text-center">
           <div className="mb-6 flex items-center justify-center w-[120px] h-[120px] overflow-hidden -ml-6">
             <img
-              src="/src/assets/signin-logo.png"
+              src={signinLogo}
               alt="Silent Link"
               className="w-full h-full object-cover"
             />
