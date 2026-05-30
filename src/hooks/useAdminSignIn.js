@@ -54,7 +54,14 @@ function useAdminSignIn() {
         }),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data = {};
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        setErrorMessage('Unexpected server response. Please try again.');
+        return false;
+      }
 
       if (!response.ok) {
         setErrorMessage(data.message || 'Invalid email or password.');

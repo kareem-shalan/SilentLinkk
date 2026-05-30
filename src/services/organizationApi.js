@@ -1,7 +1,15 @@
 import axios from 'axios';
 
-// Empty string = same-origin /api (proxied in dev via Vite, on Vercel via vercel.json).
-export const ORGANIZATION_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+function resolveApiBaseUrl() {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (!envUrl) return '';
+  // HTTP API URLs break on HTTPS (Vercel). Always use same-origin /api proxy in production.
+  if (import.meta.env.PROD && envUrl.startsWith('http://')) return '';
+  return envUrl;
+}
+
+// Empty string = same-origin /api (Vite dev proxy locally, Vercel serverless function in production).
+export const ORGANIZATION_BASE_URL = resolveApiBaseUrl();
 
 export function apiUrl(path) {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
