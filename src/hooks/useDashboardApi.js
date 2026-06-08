@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import {
-  calculateStatsFromSosData,
   mapHistoryFromApi,
   classifyMapPins,
+  fetchOrganizationStats,
   fetchSosHistory,
   fetchMapPins,
-  fetchSosList,
-  normalizeSosList,
+  mapStatsFromApi,
 } from '../services/organizationApi';
 
 const DEFAULT_STATS = [
@@ -43,8 +42,8 @@ export function useDashboardApi(activeFilter) {
 
         const subtitle = `On this ${activeFilter}`;
 
-        const [sosListResult, historyResult, pinsResult] = await Promise.allSettled([
-          fetchSosList(signal),
+        const [statsResult, historyResult, pinsResult] = await Promise.allSettled([
+          fetchOrganizationStats(activeFilter, signal),
           fetchSosHistory(signal),
           fetchMapPins(signal),
         ]);
@@ -53,15 +52,14 @@ export function useDashboardApi(activeFilter) {
         let historyOk = false;
         let errorMessage = null;
 
-        if (sosListResult.status === 'fulfilled') {
-          const sosList = normalizeSosList(sosListResult.value);
-          const { stats: mappedStats, chartData: mappedChartData } = calculateStatsFromSosData(sosList, subtitle);
+        if (statsResult.status === 'fulfilled') {
+          const { stats: mappedStats, chartData: mappedChartData } = mapStatsFromApi(statsResult.value, subtitle);
           setStats(mappedStats);
           setChartData(mappedChartData);
           statsOk = true;
-        } else if (!isAborted(sosListResult.reason)) {
-          console.error('SOS list fetch error:', sosListResult.reason);
-          if (isUnauthorized(sosListResult.reason)) {
+        } else if (!isAborted(statsResult.reason)) {
+          console.error('Dashboard stats fetch error:', statsResult.reason);
+          if (isUnauthorized(statsResult.reason)) {
             errorMessage = 'Unauthorized. Please sign in again.';
           }
         }
@@ -115,14 +113,13 @@ export function useDashboardApi(activeFilter) {
 
           const subtitle = `On this ${activeFilter}`;
 
-          const [sosListResult, historyResult] = await Promise.allSettled([
-            fetchSosList(signal),
+          const [statsResult, historyResult] = await Promise.allSettled([
+            fetchOrganizationStats(activeFilter, signal),
             fetchSosHistory(signal),
           ]);
 
-          if (sosListResult.status === 'fulfilled') {
-            const sosList = normalizeSosList(sosListResult.value);
-            const { stats: mappedStats, chartData: mappedChartData } = calculateStatsFromSosData(sosList, subtitle);
+          if (statsResult.status === 'fulfilled') {
+            const { stats: mappedStats, chartData: mappedChartData } = mapStatsFromApi(statsResult.value, subtitle);
             setStats(mappedStats);
             setChartData(mappedChartData);
           }
@@ -158,14 +155,13 @@ export function useDashboardApi(activeFilter) {
 
           const subtitle = `On this ${activeFilter}`;
 
-          const [sosListResult, historyResult] = await Promise.allSettled([
-            fetchSosList(signal),
+          const [statsResult, historyResult] = await Promise.allSettled([
+            fetchOrganizationStats(activeFilter, signal),
             fetchSosHistory(signal),
           ]);
 
-          if (sosListResult.status === 'fulfilled') {
-            const sosList = normalizeSosList(sosListResult.value);
-            const { stats: mappedStats, chartData: mappedChartData } = calculateStatsFromSosData(sosList, subtitle);
+          if (statsResult.status === 'fulfilled') {
+            const { stats: mappedStats, chartData: mappedChartData } = mapStatsFromApi(statsResult.value, subtitle);
             setStats(mappedStats);
             setChartData(mappedChartData);
           }

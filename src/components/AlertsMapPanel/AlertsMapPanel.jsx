@@ -32,13 +32,16 @@ const PIN_TYPES = [
   { label: 'Help reached here', tone: 'yellow', type: 'Help' },
 ];
 
-function ChangeView({ center, zoom }) {
+function MapResizeAndChangeView({ center, zoom }) {
   const map = useMap();
 
   useEffect(() => {
     if (center) {
       map.setView(center, zoom);
     }
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 300);
   }, [center, zoom, map]);
 
   return null;
@@ -162,19 +165,20 @@ function AlertsMapPanel({ pins, onCreatePin, onDeletePin, isSubmitting, actionEr
   }
 
   return (
-    <div className="flex h-full min-h-[400px] w-full flex-col gap-4 lg:min-h-[500px] lg:flex-row lg:gap-6">
-      <div className="relative h-[350px] w-full flex-1 overflow-hidden rounded-lg border border-[#8f8f8f] sm:h-[450px] lg:min-h-[500px] lg:h-auto lg:flex-[1_1_0%]">
+    <div className="flex h-full w-full flex-col gap-4 p-2 lg:flex-row lg:gap-6">
+      <div className="relative w-full flex-1 overflow-hidden rounded-lg border border-[#8f8f8f] h-[380px] lg:h-full">
         {actionError ? (
-          <div style={{ padding: '8px 12px', color: '#8a1f1f', fontSize: '13px', fontWeight: 'bold' }}>
+          <div style={{ padding: '8px 12px', color: '#8a1f1f', fontSize: '13px', fontWeight: 'bold', zIndex: 1000 }}>
             {actionError}
           </div>
         ) : null}
+        
         <MapContainer
           center={countryConfig.center}
           zoom={countryConfig.zoom}
           style={{ height: '100%', width: '100%' }}
         >
-          <ChangeView center={countryConfig.center} zoom={countryConfig.zoom} />
+          <MapResizeAndChangeView center={countryConfig.center} zoom={countryConfig.zoom} />
           <MapClickHandler onMapClick={(lat, lng) => setPendingPin({ lat, lng })} disabled={isSubmitting} />
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
@@ -259,7 +263,7 @@ function AlertsMapPanel({ pins, onCreatePin, onDeletePin, isSubmitting, actionEr
         </MapContainer>
       </div>
 
-      <div className="flex w-full shrink-0 items-end pb-2 lg:w-[220px] lg:pb-6">
+      <div className="flex w-full shrink-0 items-center justify-center pb-2 lg:w-[220px] lg:items-end lg:pb-0">
         <div className="w-full rounded-2xl border border-[#E5E5E5] bg-[#F6F6F6] px-5 py-4 shadow-sm">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">

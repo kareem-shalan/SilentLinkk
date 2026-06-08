@@ -65,9 +65,11 @@ function AlertsPage() {
                     {error ? (
                         <div className="mb-3 text-sm font-bold text-[#8a1f1f]">{error}</div>
                     ) : null}
-                    <div className="min-h-[350px] flex-1 overflow-hidden rounded border border-[#777777] sm:min-h-[450px]">
+                    
+                    {/* تم تحديد h-[500px] كحد أدنى ثابت ومضمون لتظهر الخريطة فوراً بدلاً من المربع الرمادي */}
+                    <div className="h-[500px] w-full overflow-hidden rounded border border-[#777777] sm:h-[550px] lg:h-[600px] flex flex-col">
                         {isLoading ? (
-                            <div className="py-12 text-center font-bold text-[#49987A] sm:py-16">
+                            <div className="py-12 text-center font-bold text-[#49987A] sm:py-16 m-auto">
                                 Loading map pins...
                             </div>
                         ) : (
